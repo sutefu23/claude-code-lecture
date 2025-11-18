@@ -1,65 +1,10 @@
 ---
 marp: true
-theme: default
+theme: kouen
 class: lead
 paginate: true
 backgroundColor: white
 header: "**著者と深掘るClaude Code×AI駆動開発の最前線**"
-style: |
-  section {
-    font-family: 'Helvetica', 'Arial', sans-serif;
-  }
-  h1 {
-    color: #0078D7;
-  }
-  code {
-    background-color: #f0f0f0;
-    padding: 0.2em 0.4em;
-    border-radius: 3px;
-  }
-  .columns {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  .rows {
-    display: grid;
-    grid-template-rows: auto auto;
-    gap: 1rem;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-  }
-  .columns img {
-    width: 100%;
-    height: auto;
-    max-height: 450px;
-    object-fit: contain;
-  }
-  small{
-    font-size: 0.7rem;
-    color: #666;
-    margin-top: 0.5rem;
-    display: block;
-    font-family: 'Helvetica', 'Arial', sans-serif;
-    font-weight: normal;
-  }
-  .lead {
-    font-size: 1.2rem;
-  }
-  .orange{
-    color: #FF5722;
-  }
-  li{
-    list-style-type: disc;
-    margin-left: 1.5rem;
-  }
-  li li{
-    list-style-type: circle;
-    margin-left: 1.5rem;
-  }
 ---
 <script src="https://cdn.tailwindcss.com/"></script>
 <script>tailwind.config = { corePlugins: { preflight: false } }</script>
@@ -134,7 +79,7 @@ style: |
 教科書になることを目指しました。
 
 <div class="columns">
-  <div class="w-[80vw] text-[28px]">
+  <div class="w-[81vw] text-[28px]">
 
 1章：Claude Code入門と開発環境構築
 2章：Claude CodeによるAI駆動開発の基礎
@@ -143,7 +88,7 @@ style: |
 5章：セキュリティと応用的な活用
   </div>
   <div>
-    <img src="./image/book.png" alt="Claude Codeの本" />
+    <img src="./image/book.png" alt="Claude Codeの本" style="height:60vh"/>
   </div>
 <div>
 
@@ -155,7 +100,7 @@ style: |
 1. はじめにそこ教えてくれClaude Code
 2. あまり意識に上らないけど使っておくべき機能
 3. 混乱しがちな機能群と使用例まとめ
-4. プロジェクトごとによるClaude Codeの操縦方法
+4. プロジェクトの大きさによるClaude Codeの操縦方法
 5. 質疑応答
 
 ---
@@ -215,7 +160,7 @@ InputとOutputの両方を次のinputに含めて引き継いでいく。これ�
 ## 実装をしていたら内容について迷い始めて違うやり方でやり直し始めた
 
 `/rewind`...会話と変更ファイルをロールバック。Esc2回でも発動。
-コンテキストも戻るため、殆ど最強。
+コンテキストウィンドウも戻るため、殆ど最強。
 
 ---
 
@@ -267,7 +212,7 @@ MCPは結構食うので注意。
   - api
   - scheme
 
-- HooksやSkillsでファイルを作った時、セッション終了時などにプロンプトで命令しておくのはかなりアリだと思っている。
+- Hooks（最近StopとSubagentStopのみプロンプトも書けるようになった）やSkillsでファイルを作った時、セッション終了時などにプロンプトで命令しておくのはアリだと思っている。
 
 ---
 
@@ -299,7 +244,7 @@ Dockerでコンテナ化する必要が無く便利。
     "autoAllowBashIfSandboxed": true
   }
 ```
-このように追記すれば、設定は永続化。
+このように追記すれば、設定は永続化。（ただしユーザーディレクトリに入ってるGoogleCloudのキャッシュをクリアして問題解決、とかは難しくはなる。）
 
 
 ---
@@ -321,7 +266,7 @@ AIで実装しているとどうしても、コード実装内容の解像度が
 - Hooks
 - Skills
 
-⇒　基本的にSkillsが正解
+⇒　基本的に手順があるものはSkills、専門性が高いものはサブエージェント、MCPにしかない機能はＭＣＰサーバー、確定的な動作をさせたい時はHooks、特定の指示のまとまりを使いたい時はスラッシュコマンド
 
 ---
 
@@ -342,12 +287,17 @@ AIで実装しているとどうしても、コード実装内容の解像度が
 例：コードレビュー、テストコード生成、ドキュメント生成など
 
 ---
-
+<style scoped>
+section {
+  font-size: 27px;
+}
+</style>
 # サブエージェント
 
 ### 概要
+
 メインのClaudeセッションとは別に、独立したClaudeセッションを作成できる機能。
-コンテキストを占有する。
+メインエージェントからコンテキストは切り離されているため、精度を高める事が期待できる。
 
 ### 設定方法
 `/agent`コマンドで新しいエージェントを作成。もしくは`.claude/agents`配下にMDファイルを保存することで利用可能。名称もしくは@で呼び出すか、必要な時に自動で呼び出される。コンテキストを占有。
@@ -363,12 +313,12 @@ AIで実装しているとどうしても、コード実装内容の解像度が
 ### 概要
 
 特定のトリガーに基づいて自動的に実行されるカスタムスクリプトやコマンドを定義できる機能。
-コンテキストを占有しない。
+エラーも吐かずデバッグしにくいのが難点。コンテキストを占有しない。
 
 ### 設定方法
 
 `~/settings.(local).json`にイベント（発火タイミング）を記載。
-これまで特定のコマンドだけだったが、最近プロンプトも指定できるようになった。
+これまで特定のコマンドだけだったが、最近StopとSubagentStopのみプロンプトも指定できるようになった。
 
 ### 使用例
 
@@ -382,6 +332,7 @@ section {
   flex-wrap: nowrap;
   justify-content: center;
   text-align: center;
+  font-size: 22px;
 }
 </style>
 | イベント | 内容 | macher |
@@ -393,8 +344,8 @@ section {
 | Stop | メインエージェントが応答を完了した時（ただしユーザーが強制的に中断した時は入りません。） | なし |
 | SubagentStop | Claude Codeサブエージェントが応答を完了した時 | なし |
 | PreCompact | コンパクトが呼び出された時 | `manual`: /compact呼び出し時、`auto`: 自動コンパクト時 |
-| SessionEnd | セッションが終了した時に実行。reasonフィールドで終了理由を示す事が可能（例: clear, logout, prompt_input_exit, other）。これによりパラメーターを受け取ってロギングなどができる。 | なし |
-| SessionStart | Claude Codeが新しいセッションを開始または再開した時 | `startup`: 初回起動、`resume`: --resume, --continue, /resume、`clear`: /clear |
+| SessionEnd | セッションが終了した時に実行。reasonフィールドで終了理由を示す事が可能 | なし |
+| SessionStart | Claude Codeが新しいセッションを開始または再開した時 | `startup`: 初回起動等 |
 
 ---
 
@@ -402,15 +353,16 @@ section {
 
 | 機能 | コンテキスト占有 | 動作タイミング | 保存場所 |
 |------|-----------------|--------------|----------|
+| **サブエージェント** | あり | 明示的な呼び出し or 自動 | `.claude/agents/` |
 | **Hooks** | なし（settings.json） | イベント駆動 | `.claude/settings.json` |
-| **カスタムエージェント** | あり | 明示的な呼び出し or 自動 | `.claude/agents/` |
-| **MCPサーバー** | あり（ツール定義） | 常時接続・必要時にツール呼び出し | 外部プロセス（settings.jsonで設定） |
+| **MCPサーバー** | あり（ツール定義） | 常時接続・必要時にツール呼び出し | `.mcp.json` or `~/.claude.json` |
 | **スラッシュコマンド** | なし（呼び出し時のみ） | 明示的なコマンド実行時（/command-name） | `.claude/commands/` |
 | **Skills** | 最小限（メタデータのみ） | 自然言語で自動検出 | `.claude/skills/`  |
 
 ---
 
 # Skills
+
 ### 概要
 Claude Codeの最新機能。特定のタスクを実行するための小さなモジュール（スキル）を作成し、必要に応じて自動的に呼び出すことができる。コンテキストの占有を最小限に抑える設計。
 
@@ -420,6 +372,10 @@ Claude Codeの最新機能。特定のタスクを実行するための小さな
 ---
 
 ### スキル構成例
+
+
+定義だけではなく、より具体的な例や参考ドキュメント、実行スクリプト、出力テンプレートなども含めることができる。
+
 ```
 my-skill/
 ├── SKILL.md (必須)
@@ -431,12 +387,213 @@ my-skill/
     └── template.txt (オプション：出力テンプレートなど)
 ```
 
+---
 
 
 ### 使用例
 特定のタスク（例：コードレビュー、テストコード生成、ドキュメント生成など）を実行するためのモジュールとして使用。
 
-<i>確定的な動作を行わせられる、LLMに柔軟なかつ例に沿った指示を与えられる、コンテキストを（ほとんど）占有しない。
-基本的にはやりたいことは第一選択としてSkillsで実装するのがベスト。</i>
+**確定的な動作を行わせられる、LLMに柔軟なかつ例に沿った指示を与えられる、コンテキストを（ほとんど）占有しない。
+基本的にはやりたいことは第一選択としてSkillsで実装するのがベスト。**
 
 ---
+
+### Skillsのメリット
+
+- **コンテキストの最小化**: 必要な情報のみを提供し、無駄なコンテキスト占有を防止
+- **再利用性**: 一度作成したスキルを他のプロジェクトでも利用可能
+- **柔軟性**: スクリプトやテンプレートを組み合わせて複雑なタスクも実行可能。出力形式も柔軟に指定可能
+- **メンテナンス性**: スキル単位での更新や改善が容易
+
+---
+
+# プロジェクトごとによるClaude Codeの操縦方法
+
+注意: ここから先は主観的な内容も含まれます。
+
+---
+
+# 下記レベルのアプリケーション開発ならVibeコーディングで可能になったのでは
+
+- エンジニア一人で完結できるようなアプリケーション
+- MVP開発やプロトタイピング
+- 社内ツール用アプリケーション
+
+---
+
+# 小規模プロジェクトでのClaude Code
+
+セッション間で共有できるのはCLAUDE.mdとコードが基本。
+如何に実装プランとコンテキストを整理してClaude Codeに伝えるかが鍵。
+
+これまで個人的にはPlanを立てて、Issueに分割し挙げてもらっていた。
+
+Spec駆動開発で精度が高いものになった印象。
+
+---
+
+# Spec駆動開発
+
+それぞれの段階フェーズに分け、次のステップに進む前に各ステップが適切に完了していることを保証
+
+Kiro:
+要件(requirements)⇒設計(design)⇒タスク(tasks)
+
+Spec Kit:
+仕様(specification)⇒計画(planning)⇒タスク作成(tasking)
+
+
+「考慮漏れがあったので、作りなおし」という事が減る。特にSpec Kitの`clarify`フェーズが有効。
+
+---
+
+# 中規模以上で操作するClaude Code
+
+平川の試案的な考え方
+
+---
+
+
+## 原則1：如何に不確実性を下げるか。
+
+<div class="columns">
+  <div>
+    <img src="./image/task-momentum.png" alt="中規模プロジェクトでのClaude Code" />
+  </div>
+  <div>
+- 結果の不確実性<br/>
+- 人間の手がどこまで入る必要があるかの判断<br/>
+  </div>
+</div>
+
+---
+
+## 原則：LLMエージェントを如何に制御可能にするか
+
+<div class="columns">
+  <div>
+    <img src="./image/abareuma.png" alt="中規模プロジェクトでのClaude Code" />
+  </div>
+  <div>
+- Huskeyをまずインストールする<br/>
+- `/sandbox`は設定しておく<br/>
+- Linter、FormatterはHooksもしくはSkillsで設定<br/>
+  </div>
+</div>
+
+---
+
+## 原則2: 人間への可読性と理解をどう高めるか。
+
+<div class="columns">
+<div>
+
+![height:400px](image/ai-human.png)
+
+</div>
+<div>
+- `output-style`は`Explanation`にしておく<br/>
+- CLAUDE.mdはセッション終了時に生成してもらう<br/>
+</div>
+</div>
+
+---
+<style scoped>
+section {
+  text-align: center;
+}
+h1{
+  text-align: left;
+}
+</style>
+
+# オニオンアーキテクチャの観点から考える
+
+![height:500px center](./image/domain.png)
+
+---
+
+# インフラ層はコンテキストが無い
+
+- インフラ層のコードは標準化しやすい
+外部APIの呼出し、DB接続、認証・認可、ログ管理、ストレージサービス(S3等)への保存など
+組織としてたくさん作っておくと資産になる
+
+---
+
+# ドメイン層はボイラープレート化しやすい
+
+⇒　ドメインオブジェクトとロジックの定義ファイルからスキル化しやすい。
+
+<div class="columns">
+<div>
+
+##### ドメインオブジェクト
+```
+class User {
+  constructor(id, name, email) {
+    this.id = id;
+    this.name = name;
+    this.email = email;
+  }
+}
+```
+
+</div>
+<div>
+
+##### ドメインサービス
+```
+class UserService {
+  constructor(userRepository) {
+    this.userRepository = userRepository;
+  }
+
+  async createUser(userData) {
+    // ユーザ作成のビジネスロジック
+    return this.userRepository.save(userData);
+  }
+
+  async getUserById(userId) {
+    // ユーザ取得のビジネスロジック
+    return this.userRepository.findById(userId);
+  }
+}
+```
+
+</div>
+
+</div>
+
+---
+
+# その他の層
+
+- 単体テスト、UI層のコンポーネントもSkills化しやすい
+UIコンポーネントはFigmaMCPサーバーで8割9割自動化できる。GeminiCLIの方がコンテキストが長大（100万トークン）のため、可能な範囲が広い。
+Claude Sonnet4.5でも100万トークン対応可能だが、APIのみ、なのとコストが高い。
+
+
+---
+
+# まとめ
+
+- 常にコンテキストウィンドウに何が入っているかを意識する(CLAUDE.md、MCP、これまでの会話、IDE連携)
+- 予測可能性、制御可能性を高める
+- 可読性、理解性を高める
+
+---
+
+# 最後に
+
+- 気軽に連絡してください。 **@t_hirakawa**
+導入支援や講演のご依頼も歓迎します。
+
+- 仲間も募集中です。
+PM、エンジニア、営業など。
+
+---
+
+# 質疑応答
+
+```
